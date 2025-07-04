@@ -13,28 +13,8 @@
       this.heading = 0;
       this.pitch = 0;
       this.roll = 0;
+      this.gpsEnabled = false;
 
-      // ★ GPS取得（ユーザー許可が必要）
-      if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
-          (position) => {
-            this.latitude = position.coords.latitude ?? 0;
-            this.longitude = position.coords.longitude ?? 0;
-            this.altitude = position.coords.altitude ?? 0;
-          },
-          (error) => {
-            console.error('GPS取得エラー:', error);
-          },
-          {
-            enableHighAccuracy: true,
-            maximumAge: 1000
-          }
-        );
-      } else {
-        console.warn('このデバイスはGPSに対応していません');
-      }
-
-      // ★ 角度取得（ユーザー許可が必要）
       window.addEventListener('deviceorientation', (event) => {
         this.heading = event.alpha ?? 0;
         this.pitch = event.beta ?? 0;
@@ -49,6 +29,11 @@
         color1: '#4B9CD3',
         color2: '#3676A3',
         blocks: [
+          {
+            opcode: 'enableGPS',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'GPSを有効にする'
+          },
           {
             opcode: 'getLatitude',
             blockType: Scratch.BlockType.REPORTER,
@@ -83,8 +68,28 @@
       };
     }
 
+    enableGPS() {
+      if (!this.gpsEnabled && navigator.geolocation) {
+        navigator.geolocation.watchPosition(
+          (position) => {
+            this.latitude = position.coords.latitude ?? 0;
+            this.longitude = position.coords.longitude ?? 0;
+            this.altitude = position.coords.altitude ?? 0;
+          },
+          (error) => {
+            console.error('GPS取得失敗:', error);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 1000
+          }
+        );
+        this.gpsEnabled = true;
+      }
+    }
+
     getLatitude() {
-      return Number(this.latitude.toFixed(6));  // 精度調整
+      return Number(this.latitude.toFixed(6));
     }
 
     getLongitude() {
@@ -92,11 +97,11 @@
     }
 
     getAltitude() {
-      return Math.round(this.altitude * 100) / 100;  // 小数第2位まで
+      return Math.round(this.altitude * 100) / 100;
     }
 
     getHeading() {
-      return Math.round(this.heading * 10) / 10;  // 小数第1位
+      return Math.round(this.heading * 10) / 10;
     }
 
     getPitch() {
