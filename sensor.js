@@ -1,30 +1,41 @@
-class SensorExtension {
-    constructor(runtime) {
-      this.runtime = runtime;
+(function(Scratch) {
+  'use strict';
+
+  if (!Scratch.extensions.unsandboxed) {
+    throw new Error('この拡張機能はTurboWarp専用です。Scratchでは動きません。');
+  }
+
+  class SensorExtension {
+    constructor() {
       this.latitude = 0;
       this.longitude = 0;
       this.altitude = 0;
       this.pitch = 0;
       this.roll = 0;
       this.heading = 0;
-  
-      // GPS取得
+
       if (navigator.geolocation) {
         navigator.geolocation.watchPosition(position => {
-          this.latitude = position.coords.latitude;
-          this.longitude = position.coords.longitude;
+          this.latitude = position.coords.latitude || 0;
+          this.longitude = position.coords.longitude || 0;
           this.altitude = position.coords.altitude || 0;
+        }, error => {
+          console.error('GPS取得失敗:', error);
+        }, {
+          enableHighAccuracy: true,
+          maximumAge: 1000
         });
+      } else {
+        console.warn('このデバイスはGPSに対応していません');
       }
-  
-      // 角度取得
+
       window.addEventListener('deviceorientation', (event) => {
-        this.pitch = event.beta || 0;   // 上下
-        this.roll = event.gamma || 0;   // 左右
-        this.heading = event.alpha || 0; // 方位
+        this.pitch = event.beta || 0;
+        this.roll = event.gamma || 0;
+        this.heading = event.alpha || 0;
       }, true);
     }
-  
+
     getInfo() {
       return {
         id: 'sensorExtension',
@@ -39,7 +50,7 @@ class SensorExtension {
         ]
       };
     }
-  
+
     getLatitude() { return this.latitude; }
     getLongitude() { return this.longitude; }
     getAltitude() { return this.altitude; }
@@ -47,6 +58,6 @@ class SensorExtension {
     getPitch() { return this.pitch; }
     getRoll() { return this.roll; }
   }
-  
+
   Scratch.extensions.register(new SensorExtension());
-  
+})(Scratch);
